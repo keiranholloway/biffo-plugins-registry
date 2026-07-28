@@ -1,0 +1,67 @@
+# Keeps the built-in plugins' registry entries in step with biffo-template.
+#
+# orchestrator and agent-runtime ship INSIDE Biffo core at
+# services/_plugins/<name>/ and are distributed by `biffo core upgrade`, so
+# they have no repo of their own to publish from. They are pulled here
+# instead.
+#
+# This works with no credentials at all: biffo-template is a public repo, so
+# its manifests are readable over raw.githubusercontent.com, and the commit
+# goes to this repo using the built-in GITHUB_TOKEN. The private plugin repos
+# cannot use this route — they push their own entry instead, see
+# publish-registry.yml in each of them.
+name: Sync built-in plugins
+
+on:
+  schedule:
+    # Weekly. These versions change rarely (they move with core, not on their
+    # own release cadence), so a fast poll would be noise.
+    - cron: '17 6 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    name: Pull built-in manifests from biffo-template
+    runs-on: ${{ vars.RUNNER_LABEL || 'ubuntu-latest' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+
+      - run: pip install jsonschema
+
+      - name: Upsert each built-in plugin from its manifest
+        env:
+          TEMPLATE_RAW: https://raw.githubusercontent.com/keiranholloway/biffo-template/dev
+          TEMPLATE_REPO: https://github.com/keiranholloway/biffo-template
+        run: |
+          set -euo pipefail
+          for plugin in orchestrator agent-runtime; do
+            url="$TEMPLATE_RAW/services/_plugins/$plugin/biffo.plugin.json"
+            # Fail loudly rather than silently skipping: a moved or renamed
+            # manifest must not read as "nothing to do".
+            curl -fsSL "$url" -o "manifest-$plugin.json"
+            python3 scripts/upsert_plugin.py \
+              --manifest "manifest-$plugin.json" \
+              --repo "$TEMPLATE_REPO" \
+              --tag built-in
+            rm -f "manifest-$plugin.json"
+          done
+
+      - name: Commit any change
+        run: |
+          set -euo pipefail
+          if git diff --quiet -- plugins.json; then
+            echo "Built-in entries already current — nothing to commit."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add plugins.json
+          git commit -m "chore(registry): sync built-in plugin versions from biffo-template"
+          git push
