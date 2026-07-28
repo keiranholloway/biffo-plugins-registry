@@ -1,0 +1,58 @@
+# Validates plugins.json against registry-schema.json.
+#
+# The portal marketplace and `biffo plugin install/upgrade` both consume this
+# file straight from raw.githubusercontent.com on `main` — there is no build
+# step and no staging copy, so whatever lands here is live immediately. A
+# malformed entry breaks the marketplace for every instance at once.
+name: Validate registry
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  validate:
+    name: Schema
+    runs-on: ${{ vars.RUNNER_LABEL || 'ubuntu-latest' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+
+      - run: pip install jsonschema
+
+      - name: Validate plugins.json against registry-schema.json
+        run: |
+          python3 - <<'PY'
+          import json, sys
+          import jsonschema
+
+          schema = json.load(open("registry-schema.json"))
+          registry = json.load(open("plugins.json"))
+
+          jsonschema.Draft7Validator.check_schema(schema)
+          errors = sorted(
+              jsonschema.Draft7Validator(schema).iter_errors(registry),
+              key=lambda e: list(e.path),
+          )
+          for error in errors:
+              print(f"::error::plugins.json{list(error.path)}: {error.message}")
+          if errors:
+              sys.exit(1)
+
+          names = [p["name"] for p in registry["plugins"]]
+          duplicates = {n for n in names if names.count(n) > 1}
+          if duplicates:
+              # Not expressible in JSON Schema, but a duplicate name silently
+              # shadows one entry in the marketplace and makes `biffo plugin
+              # install <name>` resolve to whichever came first.
+              print(f"::error::duplicate plugin names: {sorted(duplicates)}")
+              sys.exit(1)
+
+          print(f"plugins.json is valid — {len(names)} plugin(s): {', '.join(names)}")
+          PY
