@@ -4,8 +4,8 @@
   "plugins": [
     {
       "name": "ideation",
-      "version": "0.1.0",
-      "minor_version": "0.1",
+      "version": "0.0.9",
+      "minor_version": "0.0",
       "repo": "https://github.com/keiranholloway/biffo-plugin-ideation",
       "description": "Turn a raw idea into a real plan. A sharp, constructively skeptical AI co-founder pressure-tests your thinking over a short guided conversation, then hands back a high-level PRD and a viability scorecard covering competitive landscape, build-vs-buy, complexity, economic moat and market fit. Five minutes of honest challenge beats five weeks of building the wrong thing.",
       "author": "Biffo Team",
