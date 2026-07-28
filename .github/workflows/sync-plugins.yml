@@ -1,0 +1,75 @@
+# Safety net: re-derives every registered plugin's entry from its own manifest.
+#
+# Each installable plugin also pushes its entry on merge to dev (see
+# publish-registry.yml in the plugin repos), which is the timely path. That
+# path needs a cross-repo token. This one needs nothing: every source repo is
+# public, so the manifests are readable over raw.githubusercontent.com and the
+# commit goes back with the built-in GITHUB_TOKEN.
+#
+# So the two mechanisms are deliberately not redundant:
+#   push  -> immediate, needs a credential
+#   pull  -> eventual, needs none, and covers the built-in plugins that have no
+#            repo of their own to push from
+# upsert_plugin.py is idempotent, so whichever runs second is a no-op.
+#
+# Add a plugin to sources.json and its version tracks automatically.
+name: Sync plugins from source manifests
+
+on:
+  schedule:
+    - cron: '17 6 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    name: Re-derive entries from manifests
+    runs-on: ${{ vars.RUNNER_LABEL || 'ubuntu-latest' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+
+      - run: pip install jsonschema
+
+      - name: Upsert every source in sources.json
+        run: |
+          set -euo pipefail
+          count="$(python3 -c "import json;print(len(json.load(open('sources.json'))['sources']))")"
+          for i in $(seq 0 $((count - 1))); do
+            read -r name repo manifest <<<"$(python3 -c "
+          import json
+          s = json.load(open('sources.json'))['sources'][$i]
+          print(s['name'], s['repo'], s['manifest'])
+          ")"
+            tag_args="$(python3 -c "
+          import json
+          s = json.load(open('sources.json'))['sources'][$i]
+          print(' '.join('--tag ' + t for t in s.get('tags', [])))
+          ")"
+            echo "::group::$name"
+            # -f so a moved or renamed manifest fails the job. Silently
+            # skipping is how the registry went stale in the first place.
+            curl -fsSL "$manifest" -o "manifest.json"
+            # shellcheck disable=SC2086
+            python3 scripts/upsert_plugin.py --manifest manifest.json --repo "$repo" $tag_args
+            rm -f manifest.json
+            echo "::endgroup::"
+          done
+
+      - name: Commit any change
+        run: |
+          set -euo pipefail
+          if git diff --quiet -- plugins.json; then
+            echo "All entries already current — nothing to commit."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add plugins.json
+          git commit -m "chore(registry): sync plugin versions from source manifests"
+          git push

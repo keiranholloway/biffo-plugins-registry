@@ -1,0 +1,29 @@
+{
+  "note": "Where each registered plugin's biffo.plugin.json lives, for the credential-free safety-net sync (.github/workflows/sync-plugins.yml). Adding a plugin here is what makes its version track automatically. `tags` are extra marketplace tags prepended on every sync — `built-in` marks a plugin that ships inside Biffo core and is distributed by `biffo core upgrade` rather than `biffo plugin install`.",
+  "sources": [
+    {
+      "name": "ideation",
+      "repo": "https://github.com/keiranholloway/biffo-plugin-ideation",
+      "manifest": "https://raw.githubusercontent.com/keiranholloway/biffo-plugin-ideation/dev/biffo.plugin.json",
+      "tags": []
+    },
+    {
+      "name": "idea-scout",
+      "repo": "https://github.com/keiranholloway/biffo-plugin-idea-scout",
+      "manifest": "https://raw.githubusercontent.com/keiranholloway/biffo-plugin-idea-scout/dev/biffo.plugin.json",
+      "tags": []
+    },
+    {
+      "name": "orchestrator",
+      "repo": "https://github.com/keiranholloway/biffo-template",
+      "manifest": "https://raw.githubusercontent.com/keiranholloway/biffo-template/dev/services/_plugins/orchestrator/biffo.plugin.json",
+      "tags": ["built-in"]
+    },
+    {
+      "name": "agent-runtime",
+      "repo": "https://github.com/keiranholloway/biffo-template",
+      "manifest": "https://raw.githubusercontent.com/keiranholloway/biffo-template/dev/services/_plugins/agent-runtime/biffo.plugin.json",
+      "tags": ["built-in"]
+    }
+  ]
+}
