@@ -1,5 +1,99 @@
 {
   "schema_version": "1.0",
-  "last_updated": "2026-06-30T00:00:00Z",
-  "plugins": []
+  "last_updated": "2026-07-28T11:12:49Z",
+  "plugins": [
+    {
+      "name": "ideation",
+      "version": "0.1.0",
+      "minor_version": "0.1",
+      "repo": "https://github.com/keiranholloway/biffo-plugin-ideation",
+      "description": "Turn a raw idea into a real plan. A sharp, constructively skeptical AI co-founder pressure-tests your thinking over a short guided conversation, then hands back a high-level PRD and a viability scorecard covering competitive landscape, build-vs-buy, complexity, economic moat and market fit. Five minutes of honest challenge beats five weeks of building the wrong thing.",
+      "author": "Biffo Team",
+      "tags": [
+        "ideation",
+        "agentic",
+        "product",
+        "prd"
+      ],
+      "required_core_version": ">=0.136.0",
+      "api_routes": [
+        "/model-catalog",
+        "/model-catalog/{id}"
+      ],
+      "ui_components": [
+        "Founder ideation workspace",
+        "Admin model catalog"
+      ],
+      "status": "active"
+    },
+    {
+      "name": "idea-scout",
+      "version": "0.1.0",
+      "minor_version": "0.1",
+      "repo": "https://github.com/keiranholloway/biffo-plugin-idea-scout",
+      "description": "Stop staring at a blank page. Idea Scout reads your own founder profile, takes a build type and how ambitious you are feeling, then sends a fleet of research agents across the live web and comes back with 5-10 ranked startup ideas, each with a viability scorecard and the sources behind it. Promote any candidate straight into the Ideation Engine for a deeper pressure test.",
+      "author": "Biffo Team",
+      "tags": [
+        "ideation",
+        "agentic",
+        "product",
+        "discovery"
+      ],
+      "required_core_version": ">=0.127.0",
+      "infra_modules": [
+        "storage",
+        "cdn"
+      ],
+      "api_routes": [
+        "/build-types",
+        "/build-types/{id}"
+      ],
+      "ui_components": [
+        "Founder idea discovery workspace",
+        "Admin build-type catalog"
+      ],
+      "status": "active"
+    },
+    {
+      "name": "orchestrator",
+      "version": "0.1.0",
+      "minor_version": "0.1",
+      "repo": "https://github.com/keiranholloway/biffo-template",
+      "description": "Ships with Biffo core - already installed, nothing to add. The event-driven automation spine: subscribe to any platform event and fire off actions from workflow definitions you edit in the admin UI - templated email today, scheduled and multi-channel next. Wire up \"when this happens, do that\" without writing a single Lambda. Source lives at services/_plugins/orchestrator/.",
+      "author": "Biffo Team",
+      "tags": [
+        "built-in",
+        "orchestration",
+        "automation",
+        "events"
+      ],
+      "required_core_version": ">=0.6.0",
+      "infra_modules": [
+        "events",
+        "compute"
+      ],
+      "status": "active"
+    },
+    {
+      "name": "agent-runtime",
+      "version": "0.1.0",
+      "minor_version": "0.1",
+      "repo": "https://github.com/keiranholloway/biffo-template",
+      "description": "Ships with Biffo core - already installed, nothing to add. The engine every agentic feature runs on: it picks up requested agent runs, executes the turn loop against OpenRouter with your chosen model and tools, and posts the outcome back for the rest of the platform to react to. Owns no data of its own - define an agent and it just runs. Source lives at services/_plugins/agent-runtime/.",
+      "author": "Biffo Team",
+      "tags": [
+        "built-in",
+        "agents",
+        "ai",
+        "automation",
+        "events"
+      ],
+      "required_core_version": ">=0.44.0",
+      "infra_modules": [
+        "events",
+        "compute"
+      ],
+      "status": "active"
+    }
+  ]
 }
