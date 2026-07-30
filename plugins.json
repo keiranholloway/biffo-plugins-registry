@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "last_updated": "2026-07-29T15:52:19Z",
+  "last_updated": "2026-07-30T18:10:18Z",
   "plugins": [
     {
       "name": "ideation",
@@ -47,6 +47,8 @@
       "api_routes": [
         "/build-types",
         "/build-types/{id}",
+        "/business-models",
+        "/business-models/{id}",
         "/idea_scout_model_catalog",
         "/idea_scout_model_catalog/{id}"
       ],
