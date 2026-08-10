@@ -17,6 +17,27 @@
 # upsert_plugin.py is idempotent, so whichever runs second is a no-op.
 #
 # Add a plugin to sources.json and its version tracks automatically.
+#
+# ## Every source repo must be PUBLIC
+#
+# This path reads manifests over raw.githubusercontent.com with no credential,
+# so a private source repo cannot be synced here at all — raw returns 404 and
+# there is nothing to fall back on. That is a hard requirement of listing a
+# plugin in sources.json, not a preference. A private plugin has only the push
+# path, and so must set REGISTRY_PUBLISH_TOKEN or go unlisted.
+#
+# ## One bad source must not freeze the others
+#
+# It used to. The loop ran under `set -e` and aborted on the first curl
+# failure, before the commit step — so a single unreachable manifest discarded
+# every other plugin's already-computed update and committed nothing. Observed
+# live on 2026-08-10: a private repo was added to sources.json at 12:30Z and
+# the 13:41Z run was the first red after a day of green, with all four healthy
+# plugins silently not tracking.
+#
+# The failure is still loud — error annotations naming each broken source, and
+# a red job. What changed is that the healthy entries are committed first, so
+# the blast radius of one broken source is that source alone.
 name: Sync plugins from source manifests
 
 on:
@@ -50,9 +71,11 @@ jobs:
       - run: pip install jsonschema
 
       - name: Upsert every source in sources.json
+        id: upsert
         run: |
           set -euo pipefail
           count="$(python3 -c "import json;print(len(json.load(open('sources.json'))['sources']))")"
+          failed=""
           for i in $(seq 0 $((count - 1))); do
             read -r name repo manifest <<<"$(python3 -c "
           import json
@@ -65,16 +88,29 @@ jobs:
           print(' '.join('--tag ' + t for t in s.get('tags', [])))
           ")"
             echo "::group::$name"
-            # -f so a moved or renamed manifest fails the job. Silently
-            # skipping is how the registry went stale in the first place.
-            curl -fsSL "$manifest" -o "manifest.json"
+            # -f so a moved, renamed or unreadable manifest is an error and not
+            # a silent skip — silently skipping is how the registry went stale
+            # in the first place. Wrapped in `if` rather than left bare so the
+            # remaining sources still run and still get committed; `set -e`
+            # does not fire on a command in an if-condition.
             # shellcheck disable=SC2086
-            python3 scripts/upsert_plugin.py --manifest manifest.json --repo "$repo" $tag_args
+            if curl -fsSL "$manifest" -o manifest.json \
+              && python3 scripts/upsert_plugin.py --manifest manifest.json --repo "$repo" $tag_args; then
+              :
+            else
+              echo "::error title=Registry sync failed for ${name}::Could not re-derive '${name}' from ${manifest}. If its repo is private, raw.githubusercontent.com returns 404 and this credential-free sync can never work for it — every repo listed in sources.json must be public, or the plugin must rely on the push path and set REGISTRY_PUBLISH_TOKEN."
+              failed="${failed} ${name}"
+            fi
             rm -f manifest.json
             echo "::endgroup::"
           done
+          echo "failed=${failed# }" >> "$GITHUB_OUTPUT"
 
+      # always(), because the whole point is that a broken source does not stop
+      # the healthy ones from being published. The job still goes red, in the
+      # step after this one.
       - name: Commit any change
+        if: always()
         run: |
           set -euo pipefail
           if git diff --quiet -- plugins.json; then
@@ -86,3 +122,13 @@ jobs:
           git add plugins.json
           git commit -m "chore(registry): sync plugin versions from source manifests"
           git push
+
+      # Last, so the healthy entries are already committed when this reds the
+      # run. A source listed here that cannot be read is a real defect — either
+      # its manifest moved, or its repo is private and was never syncable.
+      - name: Fail if any source could not be synced
+        if: always() && steps.upsert.outputs.failed != ''
+        run: |
+          echo "Could not sync: ${{ steps.upsert.outputs.failed }}"
+          echo "Any other plugin's changes were still committed — see the step above."
+          exit 1
