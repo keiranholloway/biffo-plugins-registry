@@ -17,13 +17,23 @@
       "name": "orchestrator",
       "repo": "https://github.com/keiranholloway/biffo-template",
       "manifest": "https://raw.githubusercontent.com/keiranholloway/biffo-template/dev/services/_plugins/orchestrator/biffo.plugin.json",
-      "tags": ["built-in"]
+      "tags": [
+        "built-in"
+      ]
     },
     {
       "name": "agent-runtime",
       "repo": "https://github.com/keiranholloway/biffo-template",
       "manifest": "https://raw.githubusercontent.com/keiranholloway/biffo-template/dev/services/_plugins/agent-runtime/biffo.plugin.json",
-      "tags": ["built-in"]
+      "tags": [
+        "built-in"
+      ]
+    },
+    {
+      "name": "marketing",
+      "repo": "https://github.com/keiranholloway/biffo-plugin-marketing",
+      "manifest": "https://raw.githubusercontent.com/keiranholloway/biffo-plugin-marketing/dev/biffo.plugin.json",
+      "tags": []
     }
   ]
 }
