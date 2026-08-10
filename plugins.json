@@ -1,28 +1,25 @@
 {
   "schema_version": "1.0",
-  "last_updated": "2026-07-30T18:10:18Z",
+  "last_updated": "2026-08-10T14:01:06Z",
   "plugins": [
     {
-      "name": "ideation",
+      "name": "agent-runtime",
       "version": "0.1.0",
       "minor_version": "0.1",
-      "repo": "https://github.com/keiranholloway/biffo-plugin-ideation",
-      "description": "Turn a raw idea into a real plan. A sharp, constructively skeptical AI co-founder pressure-tests your thinking over a short guided conversation, then hands back a high-level PRD and a viability scorecard covering competitive landscape, build-vs-buy, complexity, economic moat and market fit. Five minutes of honest challenge beats five weeks of building the wrong thing.",
+      "repo": "https://github.com/keiranholloway/biffo-template",
+      "description": "Ships with Biffo core - already installed, nothing to add. The engine every agentic feature runs on: it picks up requested agent runs, executes the turn loop against OpenRouter with your chosen model and tools, and posts the outcome back for the rest of the platform to react to. Owns no data of its own - define an agent and it just runs. Source lives at services/_plugins/agent-runtime/.",
       "author": "Biffo Team",
       "tags": [
-        "ideation",
-        "agentic",
-        "product",
-        "prd"
+        "built-in",
+        "agents",
+        "ai",
+        "automation",
+        "events"
       ],
-      "required_core_version": ">=0.136.0",
-      "api_routes": [
-        "/model-catalog",
-        "/model-catalog/{id}"
-      ],
-      "ui_components": [
-        "Founder ideation workspace",
-        "Admin model catalog"
+      "required_core_version": ">=0.44.0",
+      "infra_modules": [
+        "events",
+        "compute"
       ],
       "status": "active"
     },
@@ -59,6 +56,58 @@
       "status": "active"
     },
     {
+      "name": "ideation",
+      "version": "0.1.0",
+      "minor_version": "0.1",
+      "repo": "https://github.com/keiranholloway/biffo-plugin-ideation",
+      "description": "Turn a raw idea into a real plan. A sharp, constructively skeptical AI co-founder pressure-tests your thinking over a short guided conversation, then hands back a high-level PRD and a viability scorecard covering competitive landscape, build-vs-buy, complexity, economic moat and market fit. Five minutes of honest challenge beats five weeks of building the wrong thing.",
+      "author": "Biffo Team",
+      "tags": [
+        "ideation",
+        "agentic",
+        "product",
+        "prd"
+      ],
+      "required_core_version": ">=0.136.0",
+      "api_routes": [
+        "/model-catalog",
+        "/model-catalog/{id}"
+      ],
+      "ui_components": [
+        "Founder ideation workspace",
+        "Admin model catalog"
+      ],
+      "status": "active"
+    },
+    {
+      "name": "marketing",
+      "version": "0.1.0",
+      "minor_version": "0.1",
+      "repo": "https://github.com/keiranholloway/biffo-plugin-marketing",
+      "status": "active",
+      "description": "Campaign studio \u2014 research an audience, decide the message, pick channels, generate media in the right form factors, hand the operator a pack they publish themselves, and measure what came back.",
+      "author": "Biffo Team",
+      "tags": [
+        "marketing",
+        "campaigns",
+        "agentic",
+        "attribution"
+      ],
+      "required_core_version": ">=0.272.0",
+      "api_routes": [
+        "/artefacts",
+        "/artefacts/{id}",
+        "/assets",
+        "/assets/{id}",
+        "/campaigns",
+        "/campaigns/{id}",
+        "/clicks",
+        "/clicks/{id}",
+        "/links",
+        "/links/{id}"
+      ]
+    },
+    {
       "name": "orchestrator",
       "version": "0.1.0",
       "minor_version": "0.1",
@@ -72,27 +121,6 @@
         "events"
       ],
       "required_core_version": ">=0.6.0",
-      "infra_modules": [
-        "events",
-        "compute"
-      ],
-      "status": "active"
-    },
-    {
-      "name": "agent-runtime",
-      "version": "0.1.0",
-      "minor_version": "0.1",
-      "repo": "https://github.com/keiranholloway/biffo-template",
-      "description": "Ships with Biffo core - already installed, nothing to add. The engine every agentic feature runs on: it picks up requested agent runs, executes the turn loop against OpenRouter with your chosen model and tools, and posts the outcome back for the rest of the platform to react to. Owns no data of its own - define an agent and it just runs. Source lives at services/_plugins/agent-runtime/.",
-      "author": "Biffo Team",
-      "tags": [
-        "built-in",
-        "agents",
-        "ai",
-        "automation",
-        "events"
-      ],
-      "required_core_version": ">=0.44.0",
       "infra_modules": [
         "events",
         "compute"
