@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "last_updated": "2026-08-11T16:11:28Z",
+  "last_updated": "2026-08-14T10:15:35Z",
   "plugins": [
     {
       "name": "agent-runtime",
@@ -106,7 +106,9 @@
         "/clicks",
         "/clicks/{id}",
         "/links",
-        "/links/{id}"
+        "/links/{id}",
+        "/spends",
+        "/spends/{id}"
       ]
     },
     {
