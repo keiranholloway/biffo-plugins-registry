@@ -75,7 +75,34 @@
           },
           "ui_components": {
             "type": "array",
-            "items": { "type": "string" },
+            "items": {
+              "type": "object",
+              "required": ["type", "label", "path"],
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "enum": ["nav-link", "page", "dashboard-widget", "modal", "dialog"],
+                  "description": "Kind of UI element registered with the portal."
+                },
+                "label": {
+                  "type": "string",
+                  "description": "Human-readable label shown in the portal."
+                },
+                "path": {
+                  "type": "string",
+                  "description": "Route or path the component is mounted at."
+                },
+                "icon": {
+                  "type": "string",
+                  "description": "Optional icon identifier for the component."
+                },
+                "requires_auth": {
+                  "type": "boolean",
+                  "description": "Whether the component requires an authenticated user."
+                }
+              },
+              "additionalProperties": false
+            },
             "description": "Portal UI elements the plugin adds."
           },
           "status": {

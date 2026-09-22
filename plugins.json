@@ -49,10 +49,7 @@
         "/idea_scout_model_catalog",
         "/idea_scout_model_catalog/{id}"
       ],
-      "ui_components": [
-        "Founder idea discovery workspace",
-        "Admin build-type catalog"
-      ],
+      "ui_components": [],
       "status": "active"
     },
     {
@@ -73,10 +70,7 @@
         "/model-catalog",
         "/model-catalog/{id}"
       ],
-      "ui_components": [
-        "Founder ideation workspace",
-        "Admin model catalog"
-      ],
+      "ui_components": [],
       "status": "active"
     },
     {
