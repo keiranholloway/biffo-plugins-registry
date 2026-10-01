@@ -1,20 +1,11 @@
-# Safety net: re-derives every registered plugin's entry from its own manifest.
+# Re-derives every registered plugin's entry from its own manifest.
 #
-# Each installable plugin also pushes its entry on merge to dev (see
-# publish-registry.yml in the plugin repos), which is the timely path. That
-# path needs a cross-repo token. This one needs nothing: every source repo is
-# public, so the manifests are readable over raw.githubusercontent.com and the
-# commit goes back with the built-in GITHUB_TOKEN.
-#
-# So the two mechanisms are deliberately not redundant:
-#   push  -> immediate, needs a credential
-#   pull  -> hourly, needs none, and covers the built-in plugins that have no
-#            repo of their own to push from
-#
-# The pull runs hourly because it is the bound on how stale the store can get
-# when the push path silently stops working — a token expires, a workflow
-# breaks, a new plugin is listed here before its secret is set.
-# upsert_plugin.py is idempotent, so whichever runs second is a no-op.
+# This pull is the ONLY path that updates the registry: plugin repos do not
+# push here. Every source repo is public, so the manifests are readable over
+# raw.githubusercontent.com and the commit goes back with the built-in
+# GITHUB_TOKEN. No cross-repo credential is involved anywhere. It runs hourly,
+# so a version bump reaches the store within about an hour.
+# upsert_plugin.py is idempotent, so a run with nothing new is a no-op.
 #
 # Add a plugin to sources.json and its version tracks automatically.
 #
@@ -23,8 +14,8 @@
 # This path reads manifests over raw.githubusercontent.com with no credential,
 # so a private source repo cannot be synced here at all — raw returns 404 and
 # there is nothing to fall back on. That is a hard requirement of listing a
-# plugin in sources.json, not a preference. A private plugin has only the push
-# path, and so must set REGISTRY_PUBLISH_TOKEN or go unlisted.
+# plugin in sources.json, not a preference. A private plugin cannot be
+# listed here and so cannot be registered.
 #
 # ## One bad source must not freeze the others
 #
@@ -42,15 +33,9 @@ name: Sync plugins from source manifests
 
 on:
   schedule:
-    # Hourly, not weekly. This interval is the WORST-CASE staleness of the
-    # whole marketplace, because it is what remains when the push path does not
-    # fire — an expired REGISTRY_PUBLISH_TOKEN, a broken workflow in a plugin
-    # repo, or a plugin listed here that has no token at all. Weekly meant any
-    # of those could hide a version bump for seven days.
-    #
-    # It costs nothing to run this often: the registry is public, so Actions
-    # minutes are free, and the job makes no commit when every entry is already
-    # current — which is the normal outcome once the push path is working.
+    # Hourly. This interval is the worst-case staleness of the marketplace,
+    # since this pull is the only update path. It costs nothing to run: the
+    # registry is public, and no commit is made when every entry is current.
     - cron: '17 * * * *'
   workflow_dispatch:
 
@@ -98,7 +83,7 @@ jobs:
               && python3 scripts/upsert_plugin.py --manifest manifest.json --repo "$repo" $tag_args; then
               :
             else
-              echo "::error title=Registry sync failed for ${name}::Could not re-derive '${name}' from ${manifest}. If its repo is private, raw.githubusercontent.com returns 404 and this credential-free sync can never work for it — every repo listed in sources.json must be public, or the plugin must rely on the push path and set REGISTRY_PUBLISH_TOKEN."
+              echo "::error title=Registry sync failed for ${name}::Could not re-derive '${name}' from ${manifest}. If its repo is private, raw.githubusercontent.com returns 404 and this credential-free sync can never work for it — every repo listed in sources.json must be public, or it cannot be synced."
               failed="${failed} ${name}"
             fi
             rm -f manifest.json

@@ -17,10 +17,13 @@ copy: whatever lands on `main` is what every Biffo instance sees, immediately.
 
 ## How entries get here
 
-Each plugin repo publishes its own entry on merge to `dev`, via a
-`publish-registry.yml` workflow that calls `scripts/upsert_plugin.py` in this
-repo. You should not normally need to hand-edit `plugins.json` for a version
-bump — that tracks the plugin's manifest automatically.
+The pull sync is the only path. `.github/workflows/sync-plugins.yml` runs hourly
+(and on demand), reads every manifest listed in `sources.json` over
+`raw.githubusercontent.com`, and calls `scripts/upsert_plugin.py` in this repo.
+Plugin repos do **not** push here, so no cross-repo credential exists anywhere.
+To make a plugin's version track, add it to `sources.json` (its repo must be
+public). You should not normally need to hand-edit `plugins.json` for a version
+bump.
 
 ### Curated vs. derived fields
 
